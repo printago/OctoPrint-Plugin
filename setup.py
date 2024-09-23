@@ -1,30 +1,30 @@
 # coding=utf-8
 
 # The plugin's identifier, has to be unique
-plugin_identifier = "mqtt"
+plugin_identifier = "printago_connector"
 
 # The plugin's python package, should be "octoprint_<plugin identifier>", has to be unique
-plugin_package = "octoprint_mqtt"
+plugin_package = "octoprint_printago_connector"
 
 # The plugin's human readable name. Can be overwritten within OctoPrint's internal data via __plugin_name__ in the
 # plugin module
-plugin_name = "OctoPrint-MQTT"
+plugin_name = "Printago Connector"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.8.16"
+plugin_version = "1.0.0"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
-plugin_description = "An OctoPrint Plugin that adds support for MQTT to OctoPrint."
+plugin_description = "Our plugin pairs your OctoPrint Instance to your Printago account, allowed seamless and easy printing and management."
 
 # The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
-plugin_author = "Gina Häußge"
+plugin_author = "Printago, Inc."
 
 # The plugin's author's mail address.
-plugin_author_email = "gina@octoprint.org"
+plugin_author_email = "matt@printago.io"
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
-plugin_url = "https://github.com/OctoPrint/OctoPrint-MQTT"
+plugin_url = "https://github.com/printago/OctoPrint-Plugin"
 
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"

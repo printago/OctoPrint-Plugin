@@ -10,9 +10,10 @@ import octoprint.plugin
 
 from octoprint.events import Events
 from octoprint.util import dict_minimal_mergediff, RepeatedTimer
+from .command_handler import CommandHandler
 
 
-class MqttPlugin(octoprint.plugin.SettingsPlugin,
+class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.StartupPlugin,
                  octoprint.plugin.ShutdownPlugin,
                  octoprint.plugin.EventHandlerPlugin,
@@ -67,6 +68,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         if self._settings.get(["broker", "url"]) is None:
             self._logger.error("No broker URL defined, MQTT plugin won't be able to work")
             return False
+        
+        self.command_handler = CommandHandler(self)
 
     ##~~ TemplatePlugin API
 
@@ -130,7 +133,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
                 temperatureTopic="temperature/{temp}",
                 temperatureActive=True,
-                temperatureThreshold=0.1,
+                temperatureThreshold=1.0,
 
                 metadataTopic="metadata/{key}",
                 metadataActive=False,
@@ -141,6 +144,18 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             ),
             client=dict(
                 client_id=None
+            ),
+            printago=dict(
+                _private_key=None,             # Private key (hidden)
+                _public_key=None,              # Public key (hidden)
+                reconnect_interval=5,
+                max_printago_files=10,
+                stream_while_printing=False,
+                camera_name=None,
+                printer_id="",
+                pairing_status=False,
+                printago_account_name=""
+                # Add other settings as needed
             ),
             timestamp_fieldname="_timestamp"
         )
@@ -589,11 +604,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         return line
 
 
-__plugin_name__ = "MQTT"
+__plugin_name__ = "Printago Connector"
 __plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
-    plugin = MqttPlugin()
+    plugin = PrintagoMqttConnector()
 
     global __plugin_helpers__
     __plugin_helpers__ = dict(
