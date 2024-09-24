@@ -2,11 +2,14 @@ import os
 import json
 import requests
 import datetime
-from octoprint.filemanager import FileDestinations
+import io
+
 from io import BytesIO
 from urllib.parse import urlparse
 from PIL import Image
 
+from octoprint.filemanager import FileDestinations
+import octoprint.plugin
 
 class FileWrapper:
     def __init__(self, obj):
@@ -34,9 +37,9 @@ class CommandHandler:
         self.subscribe_to_mqtt_commands()
 
     def subscribe_to_mqtt_commands(self):
-        command_topic = self._settings.get(["mqtt", "command_topic"])
+        command_topic = self._settings.get(["subscribe", "command_topic"])
         if not command_topic:
-            command_topic = "octoprint/commands"
+            command_topic = "octoPrint/commands"
         self.plugin.mqtt_subscribe(command_topic, self.process_command)
 
     def process_command(self, topic, payload, **kwargs):
@@ -90,7 +93,7 @@ class CommandHandler:
 
         if self._currentCommandAction == "download_gcode":
             if "url" in self._currentCommandParameters:
-                self.download_file(self._currentCommandParameters.get["url"], None)
+                self.download_file(self._currentCommandParameters.get("url"), None)
             else:
                 self._logger.error("No URL provided for downloading file.")
                 self.send_error_message("No URL provided for downloading file.")
@@ -186,7 +189,7 @@ class CommandHandler:
             axes_data = self._currentCommandParameters.get("axes", None)
             relative = self._currentCommandParameters.get("relative", True)
             speed = self._currentCommandParameters.get("speed", None)
-            tags = self._currentCommandParameters.get("tags", set())
+            tags = self._currentCommandParameters.get("tags", [])
 
             if axes_data:
                 try:
@@ -204,7 +207,7 @@ class CommandHandler:
         elif self._currentCommandAction == "extrude":
             amount = self._currentCommandParameters.get("amount", None)
             speed = self._currentCommandParameters.get("speed", None)
-            tags = self._currentCommandParameters.get("used", set())
+            tags = self._currentCommandParameters.get("used", []])
             
             if amount is not None:  
                 try:
@@ -282,6 +285,103 @@ class CommandHandler:
             self.send_error_message(f"Unknown action for webcam_control: {self._currentCommandAction}")
 
     ## Various helper functions like _get_webcam_provider_info, download_file, etc. remain unchanged
+    def _get_webcam_provider_info(self):
+        cameraPlugins = self._plugin_manager.get_implementations(octoprint.plugin.WebcamProviderPlugin)
+        provider_info = {}
+
+        for camPlugin in cameraPlugins:
+            provider_entry = {
+                "provider_info": {
+                    "id": camPlugin._identifier,
+                    "name": camPlugin._plugin_name
+                },
+                "webcams": []
+            }
+
+            if hasattr(camPlugin, 'get_webcam_configurations'):
+                webcams = camPlugin.get_webcam_configurations()
+                for webcam in webcams:
+                    compat = getattr(webcam, 'compat', {})
+                    snapshot_url = getattr(compat, 'snapshot', '')
+                    stream_url = getattr(compat, 'stream', '')
+                    
+                    webcam_entry = {
+                        "name": webcam.name,
+                        "can_snapshot": webcam.canSnapshot,
+                        "flipH" : webcam.flipH,
+                        "flipV" : webcam.flipV,
+                        "rotate90" : webcam.rotate90,
+                        "deprecated_snapshot_url" : snapshot_url,
+                        "deprecated_stream_url" : stream_url,
+                    }
+                    provider_entry["webcams"].append(webcam_entry)
+            else:
+                self._logger.warning(f"Provider {camPlugin._identifier} does not have 'get_webcam_configurations' method.")
+
+            provider_info[camPlugin._identifier] = provider_entry
+
+        if not cameraPlugins:    
+            self._logger.error("No webcam providers found.")
+            self.send_error_message("No webcam providers found.")
+
+        return provider_info
+                
+    def download_file(self, url):
+        response = requests.get(url, stream=True)
+        if response.status_code != 200:
+            self._logger.error(f"Failed to download GCODE from {url}")
+            return
+
+        folder_path = "Printago"
+        if not self._file_manager.folder_exists(FileDestinations.LOCAL, folder_path):
+            self._file_manager.add_folder(FileDestinations.LOCAL, folder_path)
+            
+        all_files = self._file_manager.list_files(path=folder_path, recursive=False)
+        
+        try:
+            gcode_data = BytesIO(response.content)
+            file_wrapper = FileWrapper(gcode_data)
+        except Exception as e:
+            self._logger.error(f"Error creating file wrapper: {e}")
+            self.send_error_message(f"Error creating file wrapper: {e}")
+            return
+        
+        file_manager = self._file_manager
+        location = FileDestinations.LOCAL
+        
+        try:
+            parsed_url = urlparse(url)
+        except Exception as e:
+            self._logger.error(f"Error parsing URL: {e}")
+            self.send_error_message(f"Error parsing URL: {e}")
+            return
+        
+        try: 
+            filename_without_params = os.path.basename(parsed_url.path)
+            filename = f"{folder_path}/{filename_without_params}"
+        except Exception as e:
+            self._logger.error(f"Error creating filename: {e}")
+            self.send_error_message(f"Error creating filename: {e}")
+            return
+        
+        try:
+            file_manager.add_file(location, filename, file_wrapper, allow_overwrite=True)
+        except Exception as e:
+            self._logger.error(f"Error adding file: {e}")
+            self.send_error_message(f"Error adding file: {e}")
+            return
+        
+        # If the number of files exceeds the threshold, delete the oldest
+        try:
+            if len(all_files) > self._settings.get(["printago", "max_printago_files"]):
+                oldest_file = min(all_files, key=lambda k: all_files[k]['date'])
+                self._file_manager.remove_file(FileDestinations.LOCAL, oldest_file)
+        except Exception as e:
+            self._logger.error(f"Error purging old Printago file: {e}")
+            self.send_error_message(f"Error purging old Printago file: {e}")
+            return
+        
+        self._logger.info(f"Downloaded GCODE from {url} to {filename}")
 
     def send_outgoing_message(self, msg_type, data):
         topic = f"octoprint/{msg_type}"

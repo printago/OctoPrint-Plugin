@@ -75,13 +75,13 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
 
     def get_template_configs(self):
         return [
-            dict(type="settings", name="MQTT")
+            dict(type="settings", name="Printago Connector")
         ]
 
     ##~~ AssetPlugin API
 
     def get_assets(self):
-        return dict(js=["js/mqtt.js"])
+        return dict(js=["js/printago_connector.js"])
 
     ##~~ StartupPlugin API
 
@@ -99,7 +99,7 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
 
         return dict(
             broker=dict(
-                url=None,
+                url="None",
                 port=1883,
                 username=None,
                 password=None,
@@ -115,6 +115,7 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
             publish=dict(
                 baseTopic="octoPrint/",
                 eventTopic="event/{event}",
+                commandTopic="commands",
                 eventActive=True,
                 printerData=False,
                 events=dict(server=True,
@@ -142,20 +143,18 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
                 lwTopic="mqtt",
                 lwActive=True
             ),
+            subscribe=dict(
+                commandTopic="commands",
+            ),
             client=dict(
                 client_id=None
             ),
             printago=dict(
                 _private_key=None,             # Private key (hidden)
                 _public_key=None,              # Public key (hidden)
+                printer_id="",
                 reconnect_interval=5,
                 max_printago_files=10,
-                stream_while_printing=False,
-                camera_name=None,
-                printer_id="",
-                pairing_status=False,
-                printago_account_name=""
-                # Add other settings as needed
             ),
             timestamp_fieldname="_timestamp"
         )
