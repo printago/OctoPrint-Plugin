@@ -348,7 +348,7 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
 
     def get_update_information(self):
         return dict(
-            mqtt=dict(
+            printago_connector=dict(
                 displayName=self._plugin_name,
                 displayVersion=self._plugin_version,
 
