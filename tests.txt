@@ -1,0 +1,107 @@
+the following are json-formatted objects to test sending over mqtt
+
+
+{
+  "type": "movement_control",
+  "action": "jog",
+  "parameters": {
+    "axes": {
+      "x": 10,
+      "y": -5,
+      "z": 2
+    },
+    "relative": true,
+    "speed": 3000,
+    "tags": []
+  }
+}
+
+{
+  "type": "temperature_control",
+  "action": "set_hotend",
+  "parameters": {
+    "tool": 0,
+    "temperature": 210
+  }
+}
+
+{
+  "type": "temperature_control",
+  "action": "set_bed",
+  "parameters": {
+    "temperature": 60
+  }
+}
+
+{
+  "type": "printer_control",
+  "action": "download_gcode",
+  "parameters": {
+    "url": "https://www.dropbox.com/scl/fi/c3evmigobq94ru51gvrk6/SquiggleP.gcode?rlkey=3pyv4x5o7ny5wd9k7q9o5x9nt&st=d9dc3089&dl=1"
+  }
+}
+
+{
+  "type": "printer_control",
+  "action": "start_print",
+  "parameters": {
+    "file_name": "Printago/SquiggleP.gcode"
+  }
+}
+
+{
+  "type": "movement_control",
+  "action": "home",
+  "parameters": {
+    "axes": "x,y,z"
+  }
+}
+
+{
+  "type": "printer_control",
+  "action": "pause_print",
+  "parameters": {}
+}
+
+{
+  "type": "printer_control",
+  "action": "resume_print",
+  "parameters": {}
+}
+
+{
+  "type": "printer_control",
+  "action": "stop_print",
+  "parameters": {}
+}
+
+{
+  "type": "movement_control",
+  "action": "extrude",
+  "parameters": {
+    "amount": 5,
+    "speed": 100,
+    "tags": []
+  }
+}
+
+{
+  "type": "printer_control",
+  "action": "get_status",
+  "parameters": {}
+}
+
+{
+  "type": "camera_control",
+  "action": "get_providers",
+  "parameters": {}
+}
+
+{
+  "type": "camera_control",
+  "action": "snapshot",
+  "parameters": {
+    "camera_provider_id": "webcam_pi",
+    "camera_name": "front_camera"
+  }
+}

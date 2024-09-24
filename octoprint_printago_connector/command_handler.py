@@ -93,7 +93,7 @@ class CommandHandler:
 
         if self._currentCommandAction == "download_gcode":
             if "url" in self._currentCommandParameters:
-                self.download_file(self._currentCommandParameters.get("url"), None)
+                self.download_file(self._currentCommandParameters.get("url"))
             else:
                 self._logger.error("No URL provided for downloading file.")
                 self.send_error_message("No URL provided for downloading file.")
@@ -189,7 +189,7 @@ class CommandHandler:
             axes_data = self._currentCommandParameters.get("axes", None)
             relative = self._currentCommandParameters.get("relative", True)
             speed = self._currentCommandParameters.get("speed", None)
-            tags = self._currentCommandParameters.get("tags", [])
+            tags = set(self._currentCommandParameters.get("tags", []))  # Convert to set
 
             if axes_data:
                 try:
@@ -207,7 +207,7 @@ class CommandHandler:
         elif self._currentCommandAction == "extrude":
             amount = self._currentCommandParameters.get("amount", None)
             speed = self._currentCommandParameters.get("speed", None)
-            tags = self._currentCommandParameters.get("used", []])
+            tags = self._currentCommandParameters.get("used", [])
             
             if amount is not None:  
                 try:

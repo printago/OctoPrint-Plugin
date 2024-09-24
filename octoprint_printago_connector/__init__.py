@@ -354,12 +354,12 @@ class PrintagoMqttConnector(octoprint.plugin.SettingsPlugin,
 
                 # version check: github repository
                 type="github_release",
-                user="OctoPrint",
-                repo="OctoPrint-MQTT",
+                user="printago",
+                repo="OctoPrint-Plugin",
                 current=self._plugin_version,
 
                 # update method: pip
-                pip="https://github.com/OctoPrint/OctoPrint-MQTT/archive/{target_version}.zip"
+                pip="https://github.com/printago/OctoPrint-Plugin/archive/{target_version}.zip"
             )
         )
 
